@@ -1,4 +1,4 @@
-// controllers/cartController.js
+
 const userModel = require("../models/userModel");
 
 exports.viewCart = async (req, res, next) => {

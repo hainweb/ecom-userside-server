@@ -1,4 +1,4 @@
-// controllers/otpController.js
+
 const userModel = require('../models/userModel');
 const sgMail    = require('@sendgrid/mail');
 const crypto    = require('crypto');
@@ -82,7 +82,7 @@ exports.verify = async (req, res, next) => {
     if (!Email || !otp)
       return res.json({ status: false, message: 'Email and OTP required' });
 
-    // handle failedAttempts throttle
+   
     const record = otpStore[Email];
     if (!record || record.expiresAt < Date.now())
       return res.json({ status: false, message: 'OTP expired' });
@@ -98,7 +98,7 @@ exports.verify = async (req, res, next) => {
       return res.json({ status: true, message: 'Proceed with reset' });
     }
 
-    // complete signup
+   
     const userData = {
       Name: req.body.Name,
       LastName: req.body.LastName,

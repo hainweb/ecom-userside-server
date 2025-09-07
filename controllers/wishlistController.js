@@ -1,4 +1,4 @@
-// controllers/wishlistController.js
+
 const userModel = require('../models/userModel');
 
 exports.view = async (req, res, next) => {

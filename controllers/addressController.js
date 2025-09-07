@@ -1,4 +1,4 @@
-// controllers/addressController.js
+
 const userModel = require('../models/userModel');
 
 exports.list = async (req, res, next) => {

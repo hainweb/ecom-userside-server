@@ -1,4 +1,4 @@
-// controllers/homeController.js
+
 const userModel = require('../models/userModel');
 
 exports.home = async (req, res, next) => {

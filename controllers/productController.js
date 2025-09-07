@@ -1,4 +1,4 @@
-// controllers/productController.js
+
 const productModel = require("../models/productModel");
 const userModel = require("../models/userModel");
 
@@ -53,7 +53,7 @@ exports.filterProduct = async (req, res) => {
 
     let query = {};
 
-    // Search by name or category
+    
     if (search) {
       query.$or = [
         { Name: { $regex: search, $options: "i" } },
@@ -61,7 +61,7 @@ exports.filterProduct = async (req, res) => {
       ];
     }
 
-    // Filter by selected categories
+   
     if (categories) {
       const categoryList = Array.isArray(categories)
         ? categories
@@ -69,7 +69,7 @@ exports.filterProduct = async (req, res) => {
       query.Category = { $in: categoryList };
     }
 
-    // Handle price filtering with string conversion using $expr
+   
     let useExpr = false;
     const exprConditions = [];
 
@@ -87,7 +87,7 @@ exports.filterProduct = async (req, res) => {
       useExpr = true;
     }
 
-    // Add $expr if needed
+   
     if (useExpr) {
       query.$expr = { $and: exprConditions };
     }
@@ -97,7 +97,7 @@ exports.filterProduct = async (req, res) => {
     let products = await productModel.filterProduct(query);
     console.log("Filtered products", products);
 
-    // Sorting
+    
     if (sort === "price-low-high") {
       products.sort((a, b) => a.Price - b.Price);
     } else if (sort === "price-high-low") {

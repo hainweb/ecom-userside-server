@@ -1,4 +1,4 @@
-// controllers/orderController.js
+
 const userModel = require("../models/userModel");
 const productModel = require("../models/productModel");
 const couponModels = require("../models/couponModel");
@@ -24,7 +24,7 @@ exports.createOrder = async (req, res) => {
     const { amount } = req.body;
 
     const options = {
-      amount: amount * 100, // amount in paise
+      amount: amount * 100, 
       currency: "INR",
       receipt: "receipt_order_id_" + new Date().getTime(),
     };

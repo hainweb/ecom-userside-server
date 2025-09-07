@@ -1,4 +1,4 @@
-// controllers/userController.js
+
 const userModel = require("../models/userModel");
 
 exports.getDetails = (req, res) => {

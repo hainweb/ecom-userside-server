@@ -1,4 +1,4 @@
-// controllers/categoryController.js
+
 const productModel = require('../models/productModel');
 
 exports.list = async (req, res, next) => {

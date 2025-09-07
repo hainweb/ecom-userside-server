@@ -1,4 +1,4 @@
-// controllers/authController.js
+
 const userModel = require('../models/userModel');
 
 exports.getLoginStatus = (req, res) => {
@@ -13,7 +13,7 @@ exports.getLoginStatus = (req, res) => {
 
 exports.login = async (req, res, next) => {
   try {
-    // (lockout logic could be in middleware or model)
+   
     const response = await userModel.doLogin(req.body);
     if (response.status) {
       req.session.user = { loggedIn: true, ...response.user };

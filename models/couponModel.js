@@ -48,7 +48,7 @@ module.exports = {
         };
       }
 
-      // If all conditions pass
+     
 
       if (apply) {
         const response = await db

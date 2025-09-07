@@ -1,4 +1,4 @@
-// controllers/contactController.js
+
 const userModel = require('../models/userModel');
 
 exports.submit = async (req, res, next) => {
