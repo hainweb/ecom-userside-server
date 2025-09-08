@@ -70,15 +70,15 @@ module.exports = {
           .get()
           .collection(collection.ORDER_COLLECTION)
           .aggregate([
-            { $match: { "products.item": new ObjectId(proId) } }, // Match the specific product
-            { $unwind: "$products" }, // Deconstruct the products array
-            { $match: { "products.item": new ObjectId(proId) } }, // Match again after unwind
+            { $match: { "products.item": new ObjectId(proId) } }, 
+            { $unwind: "$products" }, 
+            { $match: { "products.item": new ObjectId(proId) } }, 
             {
               $group: {
                 _id: null,
                 totalQuantity: { $sum: "$products.quantity" },
               },
-            }, // Sum the quantity
+            }, 
           ])
           .toArray();
 
@@ -98,14 +98,14 @@ module.exports = {
         .aggregate([
           {
             $group: {
-              _id: null, // We don't need to group by anything specific, just want the unique categories
-              categories: { $addToSet: "$Category" }, // Adds unique categories to the 'categories' array
+              _id: null, 
+              categories: { $addToSet: "$Category" }, 
             },
           },
           {
             $project: {
-              _id: 0, // Exclude the _id field
-              categories: 1, // Include the categories field
+              _id: 0,
+              categories: 1, 
             },
           },
         ])
@@ -113,7 +113,7 @@ module.exports = {
 
       console.log("cate ", categories);
 
-      return categories[0] ? categories[0].categories : []; // Return the list of categories
+      return categories[0] ? categories[0].categories : []; 
     } catch (error) {
       console.error("Error fetching categories:", error);
       return [];
@@ -131,7 +131,7 @@ module.exports = {
           if (result && result.categories) {
             console.log("success", result.categories);
 
-            resolve(result.categories); // Resolve with the categories array
+            resolve(result.categories); 
           } else {
             console.log("no cat");
 
@@ -140,7 +140,7 @@ module.exports = {
         })
         .catch((err) => {
           console.error("Error fetching categories:", err);
-          reject(err); // Reject with the error
+          reject(err); 
         });
     });
   },
@@ -152,8 +152,8 @@ module.exports = {
       db.get()
         .collection(collection.DISPLAY_COLLECTION)
         .updateOne(
-          {}, // Assuming there's only one document in the collection
-          { $pull: { categories: { id: new ObjectId(catId) } } } // Remove the category with the matching ID
+          {}, 
+          { $pull: { categories: { id: new ObjectId(catId) } } } 
         )
         .then((result) => {
           if (result.modifiedCount > 0) {
@@ -214,7 +214,7 @@ module.exports = {
     console.log("API call to server with category:", thing);
 
     return new Promise(async (resolve, reject) => {
-      // Querying the database
+     
       let products = await db
         .get()
         .collection(collection.PRODUCT_COLLECTION)
