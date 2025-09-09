@@ -32,7 +32,7 @@ const parseOrderDate = (dateString) => {
   );
 };
 
-const { v4: uuidv4 } = require("uuid"); // Import UUID library for unique ID generation
+const { v4: uuidv4 } = require("uuid");
 
 module.exports = {
   doSignup: (userData, check, findUser) => {
@@ -74,13 +74,13 @@ module.exports = {
         }
       } else {
         if (!userExists) {
-          userData.Password = await bcrypt.hash(userData.Password, 10); // Hash the password
+          userData.Password = await bcrypt.hash(userData.Password, 10);
 
           db.get()
             .collection(collection.USER_COLLECTION)
             .insertOne(userData)
             .then((data) => {
-              response1.user = userData; // Return user data
+              response1.user = userData;
 
               response1.status = true;
 
@@ -154,8 +154,6 @@ module.exports = {
       try {
         console.log("Received data:", datas);
 
-        // Find the user by ID
-
         const user = await db
           .get()
           .collection(collection.USER_COLLECTION)
@@ -167,9 +165,7 @@ module.exports = {
           return resolve({ status: false, message: "No user found" });
         }
 
-        // Check if the password was changed within the last 3 days
-
-        const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+        const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
 
         if (user.passwordChangedAt && user.passwordChangedAt > threeDaysAgo) {
           console.log("Password was changed recently");
@@ -247,7 +243,7 @@ module.exports = {
 
                     lockUntil: null,
 
-                    passwordChangedAt: Date.now(), // Store the timestamp of password change
+                    passwordChangedAt: Date.now(),
                   },
                 }
               );
@@ -276,7 +272,7 @@ module.exports = {
           const updateData = { failedAttempts };
 
           if (failedAttempts >= 6) {
-            updateData.lockUntil = Date.now() + 2 * 60 * 1000; // Lock for 2 minutes
+            updateData.lockUntil = Date.now() + 2 * 60 * 1000;
 
             console.log("User locked out for 2 minutes");
           }
@@ -336,7 +332,7 @@ module.exports = {
 
                 lockUntil: null,
 
-                passwordChangedAt: Date.now(), // Store the timestamp of password change
+                passwordChangedAt: Date.now(),
               },
             }
           );
@@ -399,8 +395,6 @@ module.exports = {
 
     return new Promise(async (resolve, reject) => {
       try {
-        // Find the user by ID
-
         let user = await db
           .get()
           .collection(collection.USER_COLLECTION)
@@ -414,8 +408,6 @@ module.exports = {
           return reject("User not found");
         }
 
-        // Check if the user already has more than 2 addresses
-
         if (user.Address && user.Address.length >= 3) {
           console.log("User already has 3 addresses");
 
@@ -425,17 +417,13 @@ module.exports = {
           });
         }
 
-        // Add a unique ID to the new address
-
         const newAddress = {
           ...data,
 
-          _id: uuidv4(), // Generate a unique ID for the address
+          _id: uuidv4(),
         };
 
         console.log(newAddress);
-
-        // Add the new address
 
         await db
           .get()
@@ -495,9 +483,7 @@ module.exports = {
   editUserAddress: (data, userId) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const addressId = data._id; // Ensure `addressId` is passed in `data`
-
-        // Check if the user exists and has the target address
+        const addressId = data._id;
 
         const result = await db
           .get()
@@ -542,14 +528,10 @@ module.exports = {
     console.log("Deleting address with ID:", addressId, "for user ID:", userId);
 
     try {
-      // Find the user document by userId
-
       let user = await db
         .get()
         .collection(collection.USER_COLLECTION)
         .findOne({ _id: new ObjectId(userId) });
-
-      // If the user doesn't exist, return an error
 
       if (!user) {
         console.log("User not found");
@@ -557,17 +539,11 @@ module.exports = {
         return { status: false, message: "User not found" };
       }
 
-      // Ensure 'addresses' is an array
-
       const addresses = user.Address || [];
-
-      // Find the index of the address to delete
 
       const addressIndex = addresses.findIndex(
         (address) => address._id === addressId
       );
-
-      // If the address doesn't exist, return a not-found message
 
       if (addressIndex === -1) {
         console.log("Address not found");
@@ -575,13 +551,9 @@ module.exports = {
         return { status: false, message: "Address not found" };
       }
 
-      // Remove the address from the array
-
       addresses.splice(addressIndex, 1);
 
       const Address = addresses;
-
-      // Update the user document with the modified addresses array
 
       await db
         .get()
@@ -746,8 +718,6 @@ module.exports = {
     details.count = parseInt(details.count);
 
     return new Promise((resolve, reject) => {
-      // Find the current quantity of the product in the cart
-
       db.get()
         .collection(collection.CART_COLLECTION)
         .findOne(
@@ -763,8 +733,6 @@ module.exports = {
             const currentQuantity = cart.products[0].quantity;
 
             if (currentQuantity + details.count <= 0) {
-              // Remove the product if the resulting quantity is 0 or less
-
               db.get()
                 .collection(collection.CART_COLLECTION)
                 .updateOne(
@@ -780,8 +748,6 @@ module.exports = {
                   resolve({ removeProduct: true });
                 });
             } else {
-              // Update the quantity if it's more than 0
-
               db.get()
                 .collection(collection.CART_COLLECTION)
                 .updateOne(
@@ -860,7 +826,7 @@ module.exports = {
 
               quantity: 1,
 
-              price: { $toDouble: "$product.Price" }, // Convert the Price field to a double
+              price: { $toDouble: "$product.Price" },
             },
           },
 
@@ -882,9 +848,7 @@ module.exports = {
       if (Array.isArray(total) && total.length > 0) {
         resolve(total[0].total);
       } else {
-        // Handle the case where total is not an array or is empty
-
-        resolve(0); // Or some other default value
+        resolve(0);
       }
     });
   },
@@ -911,8 +875,7 @@ module.exports = {
           userId
         );
 
-        let status ="Order placed" 
-       
+        let status = "Order placed";
 
         const date = new Date().toLocaleString("en-US", {
           year: "numeric",
@@ -931,8 +894,6 @@ module.exports = {
         });
 
         console.log(date);
-
-        // Create the order object
 
         let orderObj = {
           deliveryDetails: {
@@ -955,7 +916,7 @@ module.exports = {
 
           paymentMethod: details["payment-method"],
 
-          products: buyNow ? [products] : products, // Wrap single product in an array if buyNow
+          products: buyNow ? [products] : products,
 
           total: total,
 
@@ -972,8 +933,6 @@ module.exports = {
 
         if (buyNow) {
           console.log("Processing Buy Now order for:", products.Name);
-
-          // Check stock availability
 
           if (products.Quantity === 0) {
             return resolve({
@@ -994,8 +953,6 @@ module.exports = {
               product: products._id,
             });
           }
-
-          // Transform product data to desired format
 
           const transformedProducts = [
             {
@@ -1037,8 +994,6 @@ module.exports = {
             },
           ];
 
-          // Create orderObj
-
           const orderObj = {
             deliveryDetails: {
               name: details.Name,
@@ -1077,14 +1032,10 @@ module.exports = {
             date: date,
           };
 
-          // Place the order
-
           const response = await db
             .get()
             .collection(collection.ORDER_COLLECTION)
             .insertOne(orderObj);
-
-          // Update stock quantity
 
           const newQuantity = products.Quantity - 1;
 
@@ -1098,8 +1049,6 @@ module.exports = {
             );
 
           console.log(`Stock updated. New quantity: ${newQuantity}`);
-
-          // resolve({ status: true, message: "Order placed successfully." });
         } else {
           console.log("Processing Cart order");
 
@@ -1132,8 +1081,6 @@ module.exports = {
 
             date: date,
           };
-
-          // Check all products in the cart
 
           let isQuantityInsufficient = false;
 
@@ -1185,14 +1132,10 @@ module.exports = {
 
           console.log("All cart products have sufficient quantity.");
 
-          // Place the order
-
           const response = await db
             .get()
             .collection(collection.ORDER_COLLECTION)
             .insertOne(orderObj);
-
-          // Update product quantities
 
           for (const product of products) {
             const proId = product.item;
@@ -1226,14 +1169,10 @@ module.exports = {
             }
           }
 
-          // Delete the user's cart after placing the order
-
           await db
             .get()
             .collection(collection.CART_COLLECTION)
             .deleteOne({ user: new ObjectId(userId) });
-
-          // comment
 
           /*     return resolve({
           status: true,
@@ -1252,7 +1191,7 @@ module.exports = {
 
           function getExpiryDate(days = 30) {
             const now = new Date();
-            now.setDate(now.getDate() + days); // Add 30 days
+            now.setDate(now.getDate() + days);
             return now;
           }
 
@@ -1266,7 +1205,7 @@ module.exports = {
             const filtered = presetDiscounts.filter(
               (d) => d >= min && d <= max
             );
-            if (filtered.length === 0) return min; // fallback
+            if (filtered.length === 0) return min;
             return filtered[Math.floor(Math.random() * filtered.length)];
           }
 
@@ -1359,7 +1298,7 @@ module.exports = {
           });
         }
       } catch (error) {
-        console.error("Error placing order:", error); // <-- Detailed error log
+        console.error("Error placing order:", error);
         reject(error);
       }
     });
@@ -1425,7 +1364,7 @@ module.exports = {
               return: "$products.return",
               date: 1,
               couponCode: 1,
-              couponDiscount:1,
+              couponDiscount: 1,
               subtotal: 1,
               total: 1,
             },
@@ -1445,7 +1384,7 @@ module.exports = {
               return: 1,
               date: 1,
               couponCode: 1,
-              couponDiscount:1,
+              couponDiscount: 1,
               subtotal: 1,
               total: 1,
               product: { $arrayElemAt: ["$product", 0] },
@@ -1465,19 +1404,19 @@ module.exports = {
         .findOne(
           { _id: new ObjectId(userId), "Address._id": addressId },
 
-          { projection: { "Address.$": 1 } } // Projection to only fetch the matching address
+          { projection: { "Address.$": 1 } }
         )
 
         .then((response) => {
           if (response && response.Address && response.Address.length > 0) {
-            resolve(response.Address[0]); // Return the matching address
+            resolve(response.Address[0]);
           } else {
-            resolve(null); // Address not found
+            resolve(null);
           }
         })
 
         .catch((error) => {
-          reject(error); // Handle errors
+          reject(error);
         });
     });
   },
@@ -1504,8 +1443,6 @@ module.exports = {
           console.log(proExist);
 
           if (proExist !== -1) {
-            // Remove product from wishlist
-
             await db
               .get()
               .collection(collection.WISHLIST_COLLECTION)
@@ -1517,8 +1454,6 @@ module.exports = {
 
             resolve({ status: "Product removed from wishlist" });
           } else {
-            // Add product to wishlist
-
             await db
               .get()
               .collection(collection.WISHLIST_COLLECTION)
@@ -1531,8 +1466,6 @@ module.exports = {
             resolve({ status: "Product added to wishlist" });
           }
         } else {
-          // Create new wishlist
-
           let wishlistObj = {
             user: new ObjectId(userId),
 
@@ -1566,7 +1499,7 @@ module.exports = {
         if (wishlist) {
           resolve(wishlist);
         } else {
-          resolve({ products: [] }); // If no wishlist found, return empty products array
+          resolve({ products: [] });
         }
       } catch (error) {
         reject(error);
@@ -1696,8 +1629,6 @@ module.exports = {
 
         console.log("Order ID:", orderId);
 
-        // Fetch the order from the database
-
         const order = await db
           .get()
           .collection(collection.ORDER_COLLECTION)
@@ -1709,11 +1640,9 @@ module.exports = {
 
         console.log("Order Data:", order);
 
-        const orderProducts = order.products; // Assuming products is an array
+        const orderProducts = order.products;
 
         const productIdToMatch = new ObjectId(proId);
-
-        // Find the matching product
 
         const matchingProduct = orderProducts.find((product) =>
           product.item.equals(productIdToMatch)
@@ -1727,8 +1656,6 @@ module.exports = {
         }
 
         console.log("Matching Product:", matchingProduct);
-
-        // Check if a return request already exists
 
         if (matchingProduct.return && matchingProduct.return.status === true) {
           return resolve({
@@ -1745,9 +1672,9 @@ module.exports = {
           });
         }
 
-        const returnPolicy = matchingProduct.product?.Return; // Check if `Return` exists
+        const returnPolicy = matchingProduct.product?.Return;
 
-        const orderDateString = order.date; // Assuming `order.date` is a string
+        const orderDateString = order.date;
 
         console.log("Order Date String:", orderDateString);
 
@@ -1767,8 +1694,6 @@ module.exports = {
 
         console.log("Difference in Days:", differenceInDays);
 
-        // Check the return policy against the difference in days
-
         if (
           (returnPolicy === "3 Days" && differenceInDays <= 3) ||
           (returnPolicy === "5 Days" && differenceInDays <= 5) ||
@@ -1781,15 +1706,11 @@ module.exports = {
           if (check) {
             resolve({ status: true });
           } else {
-            // Add return information to the product
-
             matchingProduct.return = {
               status: true,
 
               date: date,
             };
-
-            // Include return reason and message if provided
 
             if (message) {
               matchingProduct.return.returnReason = reason;
@@ -1798,8 +1719,6 @@ module.exports = {
             } else {
               matchingProduct.return.returnReason = reason;
             }
-
-            // Update the order in the database
 
             await db
               .get()
@@ -1840,8 +1759,6 @@ module.exports = {
 
           .toArray();
 
-        // Extract the 'slider' array from the first result (assuming only one document)
-
         if (slides.length > 0) {
           const sliderArray = slides[0].slider;
 
@@ -1849,10 +1766,10 @@ module.exports = {
 
           resolve(sliderArray);
         } else {
-          resolve([]); // In case no slides are found
+          resolve([]);
         }
       } catch (error) {
-        reject(error); // Handle any errors during the query
+        reject(error);
       }
     });
   },
