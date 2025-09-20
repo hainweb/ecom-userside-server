@@ -61,16 +61,12 @@ module.exports = {
                 $set: { "reviews.$.rating": rating },
               }
             );
-            console.log(response);
 
             return response;
           } else {
-            console.log("user review and new review is same ");
             return;
           }
         }
-
-        console.log("user first review");
 
         const response = await ratingCollection().updateOne(
           { productId: new ObjectId(productId) },
@@ -78,13 +74,11 @@ module.exports = {
             $push: { reviews: userQuery },
           }
         );
-        console.log("product has already rating :", response);
+
         return response;
       } else {
-        console.log("Product has no rating");
-
         const response = await ratingCollection().insertOne(productQuery);
-        console.log("New rating to product", response);
+
         return response;
       }
     } catch (error) {
@@ -93,8 +87,6 @@ module.exports = {
   },
 
   getUserReviews: async (productIds, userId) => {
-    console.log("product ids", productIds, userId);
-
     try {
       const objectIds = productIds.map((id) => new ObjectId(id));
       const response = await ratingCollection()
@@ -115,7 +107,6 @@ module.exports = {
         };
       });
 
-      console.log("user reviews ", formatted);
       return formatted;
     } catch (error) {
       throw new Error(error);

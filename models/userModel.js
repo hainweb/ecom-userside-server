@@ -15,7 +15,7 @@ const parseOrderDate = (dateString) => {
 
   const [hours, minutes, seconds] = time.split(":");
 
-  const monthIndex = new Date(Date.parse(month + " 1")).getMonth(); // Get month index (0-11)
+  const monthIndex = new Date(Date.parse(month + " 1")).getMonth(); 
 
   return new Date(
     year,
@@ -37,8 +37,7 @@ const { v4: uuidv4 } = require("uuid");
 module.exports = {
   doSignup: (userData, check, findUser) => {
     return new Promise(async (resolve, reject) => {
-      console.log("find", userData, findUser);
-
+     
       let response1 = {};
 
       let userExists = await db
@@ -117,13 +116,12 @@ module.exports = {
 
             resolve(response);
           } else {
-            console.log("Login failed pss error");
-
+       
             resolve({ status: false });
           }
         });
       } else {
-        console.log("No user found");
+   
 
         resolve({ status: false });
       }
@@ -143,7 +141,7 @@ module.exports = {
           }
         )
         .then((response) => {
-          console.log("responce in last active update", response);
+          
           resolve();
         });
     });
@@ -152,7 +150,7 @@ module.exports = {
   changePassword: (datas) => {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log("Received data:", datas);
+       
 
         const user = await db
           .get()
@@ -160,7 +158,7 @@ module.exports = {
           .findOne({ _id: new ObjectId(datas.userId) });
 
         if (!user) {
-          console.log("No user found");
+        
 
           return resolve({ status: false, message: "No user found" });
         }
@@ -168,7 +166,7 @@ module.exports = {
         const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
 
         if (user.passwordChangedAt && user.passwordChangedAt > threeDaysAgo) {
-          console.log("Password was changed recently");
+        
 
           return resolve({
             status: false,
@@ -183,11 +181,7 @@ module.exports = {
         if (user.failedAttempts >= 6 && user.lockUntil > Date.now()) {
           const remainingTime = Math.ceil((user.lockUntil - Date.now()) / 1000);
 
-          console.log(
-            "User is locked out. Try again in",
-            remainingTime,
-            "seconds"
-          );
+         
 
           return resolve({
             status: false,
@@ -218,8 +212,7 @@ module.exports = {
           );
 
           if (isSameAsOldPassword) {
-            console.log("New password matches the previous password");
-
+       
             return resolve({
               status: false,
 
@@ -248,7 +241,7 @@ module.exports = {
                 }
               );
 
-            console.log("Password updated successfully (forgot password)");
+          
 
             return resolve({
               status: true,
@@ -265,8 +258,7 @@ module.exports = {
         );
 
         if (!isPrevPasswordCorrect) {
-          console.log("Previous password does not match");
-
+     
           const failedAttempts = (user.failedAttempts || 0) + 1;
 
           const updateData = { failedAttempts };
@@ -274,7 +266,7 @@ module.exports = {
           if (failedAttempts >= 6) {
             updateData.lockUntil = Date.now() + 2 * 60 * 1000;
 
-            console.log("User locked out for 2 minutes");
+          
           }
 
           await db
@@ -304,7 +296,7 @@ module.exports = {
         );
 
         if (isSameAsOldPassword) {
-          console.log("New password matches the previous password");
+      
 
           return resolve({
             status: false,
@@ -337,7 +329,10 @@ module.exports = {
             }
           );
 
-        console.log("Password updated successfully");
+          
+
+
+       
 
         resolve({ status: true, message: "Password updated successfully" });
       } catch (error) {

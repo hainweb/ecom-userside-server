@@ -8,8 +8,6 @@ module.exports = {
       .collection(collection.PRODUCT_COLLECTION)
       .insertOne(product)
       .then((data) => {
-        console.log("Added product data", data);
-
         callback(data.insertedId);
       });
   },
@@ -36,8 +34,6 @@ module.exports = {
   },
 
   getProduct: (proId) => {
-    console.log("api call to ser", proId);
-
     return new Promise((resolve, reject) => {
       db.get()
         .collection(collection.PRODUCT_COLLECTION)
@@ -70,15 +66,15 @@ module.exports = {
           .get()
           .collection(collection.ORDER_COLLECTION)
           .aggregate([
-            { $match: { "products.item": new ObjectId(proId) } }, 
-            { $unwind: "$products" }, 
-            { $match: { "products.item": new ObjectId(proId) } }, 
+            { $match: { "products.item": new ObjectId(proId) } },
+            { $unwind: "$products" },
+            { $match: { "products.item": new ObjectId(proId) } },
             {
               $group: {
                 _id: null,
                 totalQuantity: { $sum: "$products.quantity" },
               },
-            }, 
+            },
           ])
           .toArray();
 
@@ -98,73 +94,55 @@ module.exports = {
         .aggregate([
           {
             $group: {
-              _id: null, 
-              categories: { $addToSet: "$Category" }, 
+              _id: null,
+              categories: { $addToSet: "$Category" },
             },
           },
           {
             $project: {
               _id: 0,
-              categories: 1, 
+              categories: 1,
             },
           },
         ])
         .toArray();
 
-      console.log("cate ", categories);
-
-      return categories[0] ? categories[0].categories : []; 
+      return categories[0] ? categories[0].categories : [];
     } catch (error) {
-      console.error("Error fetching categories:", error);
       return [];
     }
   },
 
   getCategories: () => {
     return new Promise((resolve, reject) => {
-      console.log("API call to server to get categories");
-
       db.get()
         .collection(collection.DISPLAY_COLLECTION)
         .findOne({})
         .then((result) => {
           if (result && result.categories) {
-            console.log("success", result.categories);
-
-            resolve(result.categories); 
+            resolve(result.categories);
           } else {
-            console.log("no cat");
-
             reject("No categories found");
           }
         })
         .catch((err) => {
-          console.error("Error fetching categories:", err);
-          reject(err); 
+          reject(err);
         });
     });
   },
 
   deleteCategory: (catId) => {
-    console.log("Category ID to delete:", catId);
-
     return new Promise((resolve, reject) => {
       db.get()
         .collection(collection.DISPLAY_COLLECTION)
-        .updateOne(
-          {}, 
-          { $pull: { categories: { id: new ObjectId(catId) } } } 
-        )
+        .updateOne({}, { $pull: { categories: { id: new ObjectId(catId) } } })
         .then((result) => {
           if (result.modifiedCount > 0) {
-            console.log("Deletion successful");
-
             db.get()
               .collection(collection.DISPLAY_COLLECTION)
               .findOne({})
               .then((result) => {
                 if (result && result.categories) {
-                  console.log("success", result.categories);
                   let categories = result.categories;
 
                   resolve({
@@ -173,8 +151,6 @@ module.exports = {
                     categories,
                   });
                 } else {
-                  console.log("no cat");
-
                   resolve({
                     status: true,
                     message:
@@ -184,15 +160,12 @@ module.exports = {
                 }
               })
               .catch((error) => {
-                console.error("Error fetching categories:", error.message);
                 reject({
                   status: "error",
                   message: "Error fetching categories after deletion",
                 });
               });
           } else {
-            console.log("Category not found or document missing");
-
             resolve({
               status: "failed",
               message: "Category not found or document missing",
@@ -200,8 +173,6 @@ module.exports = {
           }
         })
         .catch((error) => {
-          console.error("Error during deletion:", error.message);
-
           reject({
             status: "error",
             message: error.message,
@@ -211,16 +182,13 @@ module.exports = {
   },
 
   findCategory: (thing) => {
-    console.log("API call to server with category:", thing);
-
     return new Promise(async (resolve, reject) => {
-     
       let products = await db
         .get()
         .collection(collection.PRODUCT_COLLECTION)
         .find({ Category: thing })
         .toArray();
-      console.log("products sss s s", products);
+
       resolve(products);
     });
   },
@@ -263,8 +231,6 @@ module.exports = {
           },
         ])
         .toArray();
-
-      console.log("sugested products", response);
 
       return response;
     } catch (error) {
