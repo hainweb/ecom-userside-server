@@ -15,7 +15,7 @@ const parseOrderDate = (dateString) => {
 
   const [hours, minutes, seconds] = time.split(":");
 
-  const monthIndex = new Date(Date.parse(month + " 1")).getMonth(); 
+  const monthIndex = new Date(Date.parse(month + " 1")).getMonth();
 
   return new Date(
     year,
@@ -37,7 +37,6 @@ const { v4: uuidv4 } = require("uuid");
 module.exports = {
   doSignup: (userData, check, findUser) => {
     return new Promise(async (resolve, reject) => {
-     
       let response1 = {};
 
       let userExists = await db
@@ -116,13 +115,10 @@ module.exports = {
 
             resolve(response);
           } else {
-       
             resolve({ status: false });
           }
         });
       } else {
-   
-
         resolve({ status: false });
       }
     });
@@ -141,7 +137,6 @@ module.exports = {
           }
         )
         .then((response) => {
-          
           resolve();
         });
     });
@@ -150,24 +145,18 @@ module.exports = {
   changePassword: (datas) => {
     return new Promise(async (resolve, reject) => {
       try {
-       
-
         const user = await db
           .get()
           .collection(collection.USER_COLLECTION)
           .findOne({ _id: new ObjectId(datas.userId) });
 
         if (!user) {
-        
-
           return resolve({ status: false, message: "No user found" });
         }
 
         const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
 
         if (user.passwordChangedAt && user.passwordChangedAt > threeDaysAgo) {
-        
-
           return resolve({
             status: false,
 
@@ -180,8 +169,6 @@ module.exports = {
 
         if (user.failedAttempts >= 6 && user.lockUntil > Date.now()) {
           const remainingTime = Math.ceil((user.lockUntil - Date.now()) / 1000);
-
-         
 
           return resolve({
             status: false,
@@ -212,7 +199,6 @@ module.exports = {
           );
 
           if (isSameAsOldPassword) {
-       
             return resolve({
               status: false,
 
@@ -241,8 +227,6 @@ module.exports = {
                 }
               );
 
-          
-
             return resolve({
               status: true,
               message: "Password updated successfully",
@@ -258,15 +242,12 @@ module.exports = {
         );
 
         if (!isPrevPasswordCorrect) {
-     
           const failedAttempts = (user.failedAttempts || 0) + 1;
 
           const updateData = { failedAttempts };
 
           if (failedAttempts >= 6) {
             updateData.lockUntil = Date.now() + 2 * 60 * 1000;
-
-          
           }
 
           await db
@@ -296,8 +277,6 @@ module.exports = {
         );
 
         if (isSameAsOldPassword) {
-      
-
           return resolve({
             status: false,
 
@@ -329,15 +308,8 @@ module.exports = {
             }
           );
 
-          
-
-
-       
-
         resolve({ status: true, message: "Password updated successfully" });
       } catch (error) {
-        console.error("Error changing password:", error);
-
         reject({
           status: false,
           message: "An error occurred. Please try again.",
@@ -347,8 +319,6 @@ module.exports = {
   },
 
   editProfile: (userId, data) => {
-    console.log("server data", data);
-
     return new Promise((resolve, reject) => {
       db.get()
         .collection(collection.USER_COLLECTION)
@@ -374,8 +344,6 @@ module.exports = {
             .collection(collection.USER_COLLECTION)
             .findOne({ _id: new ObjectId(userId) });
 
-          console.log("up user", user);
-
           if (user) {
             user.loggedIn = true;
 
@@ -386,16 +354,12 @@ module.exports = {
   },
 
   addAddress: (userId, data) => {
-    console.log("data", userId, data);
-
     return new Promise(async (resolve, reject) => {
       try {
         let user = await db
           .get()
           .collection(collection.USER_COLLECTION)
           .findOne({ _id: new ObjectId(userId) });
-
-        console.log("add user", user);
 
         if (!user) {
           resolve({ status: false, message: "User not found" });
@@ -404,8 +368,6 @@ module.exports = {
         }
 
         if (user.Address && user.Address.length >= 3) {
-          console.log("User already has 3 addresses");
-
           return resolve({
             status: false,
             message: "User already has 3 addresses, cannot add more",
@@ -418,8 +380,6 @@ module.exports = {
           _id: uuidv4(),
         };
 
-        console.log(newAddress);
-
         await db
           .get()
           .collection(collection.USER_COLLECTION)
@@ -429,14 +389,10 @@ module.exports = {
             { $push: { Address: newAddress } }
           );
 
-        console.log("address added", newAddress);
-
         let updateUser = await db
           .get()
           .collection(collection.USER_COLLECTION)
           .findOne({ _id: new ObjectId(userId) });
-
-        console.log("get address user", updateUser);
 
         let address = updateUser.Address;
 
@@ -446,8 +402,6 @@ module.exports = {
           address,
         });
       } catch (error) {
-        console.log("Error:", error);
-
         resolve({
           status: false,
           message: "An error occurred while adding address",
@@ -457,19 +411,13 @@ module.exports = {
   },
 
   getAddress: (userId) => {
-    console.log("user in get add", userId);
-
     return new Promise(async (resolve, reject) => {
       let user = await db
         .get()
         .collection(collection.USER_COLLECTION)
         .findOne({ _id: new ObjectId(userId) });
 
-      console.log("get address user", user);
-
       let userAddress = user.Address;
-
-      console.log("add r", userAddress);
 
       resolve({ status: true, userAddress });
     });
@@ -494,8 +442,6 @@ module.exports = {
           );
 
         if (result.matchedCount > 0) {
-          console.log("Address updated successfully!");
-
           let user = await db
             .get()
             .collection(collection.USER_COLLECTION)
@@ -512,16 +458,12 @@ module.exports = {
           resolve({ status: false, message: "User or address not found!" });
         }
       } catch (error) {
-        console.error("Error updating address:", error);
-
         reject({ status: false, error });
       }
     });
   },
 
   deleteAddress: async (addressId, userId) => {
-    console.log("Deleting address with ID:", addressId, "for user ID:", userId);
-
     try {
       let user = await db
         .get()
@@ -529,8 +471,6 @@ module.exports = {
         .findOne({ _id: new ObjectId(userId) });
 
       if (!user) {
-        console.log("User not found");
-
         return { status: false, message: "User not found" };
       }
 
@@ -541,8 +481,6 @@ module.exports = {
       );
 
       if (addressIndex === -1) {
-        console.log("Address not found");
-
         return { status: false, message: "Address not found" };
       }
 
@@ -559,12 +497,8 @@ module.exports = {
           { $set: { Address } }
         );
 
-      console.log("Address deleted successfully", Address);
-
       return { status: true, message: "Address deleted successfully", Address };
     } catch (error) {
-      console.error("Error deleting address:", error);
-
       return { status: false, message: "Error deleting address" };
     }
   },
@@ -586,8 +520,6 @@ module.exports = {
         let proExist = userCart.products.findIndex(
           (product) => product.item == proId
         );
-
-        console.log(proExist);
 
         if (proExist != -1) {
           /*db.get().collection(collection.CART_COLLECTION).updateOne({ user: new ObjectId(userId), 'products.item': new ObjectId(proId) },
@@ -625,8 +557,6 @@ module.exports = {
 
           products: [proObj],
         };
-
-        console.log(cartObj);
 
         db.get()
           .collection(collection.CART_COLLECTION)
@@ -683,8 +613,6 @@ module.exports = {
           },
         ])
         .toArray();
-
-      console.log(cartItems);
 
       resolve(cartItems);
     });
@@ -770,8 +698,6 @@ module.exports = {
   },
 
   getTotalAmount: (userId) => {
-    console.log("database", userId);
-
     return new Promise(async (resolve, reject) => {
       let total = await db
         .get()
@@ -860,16 +786,6 @@ module.exports = {
   ) => {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log(
-          details,
-          products,
-          total,
-          subtotal,
-          couponCode,
-          couponDiscount,
-          userId
-        );
-
         let status = "Order placed";
 
         const date = new Date().toLocaleString("en-US", {
@@ -887,8 +803,6 @@ module.exports = {
 
           hour12: true,
         });
-
-        console.log(date);
 
         let orderObj = {
           deliveryDetails: {
@@ -927,8 +841,6 @@ module.exports = {
         };
 
         if (buyNow) {
-          console.log("Processing Buy Now order for:", products.Name);
-
           if (products.Quantity === 0) {
             return resolve({
               status: false,
@@ -1042,11 +954,7 @@ module.exports = {
 
               { $set: { Quantity: newQuantity } }
             );
-
-          console.log(`Stock updated. New quantity: ${newQuantity}`);
         } else {
-          console.log("Processing Cart order");
-
           let orderObj = {
             deliveryDetails: {
               name: details.Name,
@@ -1086,8 +994,6 @@ module.exports = {
           let stockOutProduct = null;
 
           for (const product of products) {
-            console.log("Checking product", product);
-
             if (product.product.Quantity === 0) {
               isStockOut = true;
 
@@ -1125,8 +1031,6 @@ module.exports = {
             });
           }
 
-          console.log("All cart products have sufficient quantity.");
-
           const response = await db
             .get()
             .collection(collection.ORDER_COLLECTION)
@@ -1157,8 +1061,6 @@ module.exports = {
 
                   { $set: { Quantity: newQuantity } }
                 );
-
-              console.log(`Product ${product.product.Name} quantity updated.`);
             } else {
               console.error(`Product with ID ${proId} not found.`);
             }
@@ -1250,15 +1152,11 @@ module.exports = {
             coupons: [coupon],
           };
 
-          console.log("Coupon query is ", couponQuery);
-
           let userCoupons = await db
             .get()
             .collection(collection.COUPONS_COLLECTION)
             .find({ userId: new ObjectId(userId) })
             .toArray();
-
-          console.log("user coupons", userCoupons);
 
           if (userCoupons.length > 0) {
             // update user coupons
@@ -1270,14 +1168,12 @@ module.exports = {
                 { userId: new ObjectId(userId) },
                 { $push: { coupons: coupon } }
               );
-            console.log("user have coupon ", response);
           } else {
             //create a new coupon collection
             let response = await db
               .get()
               .collection(collection.COUPONS_COLLECTION)
               .insertOne(couponQuery);
-            console.log("User have no coupons", response);
           }
 
           return resolve({
@@ -1318,8 +1214,6 @@ module.exports = {
         .find({ userId: new ObjectId(userId) })
         .toArray();
 
-      console.log("order sie", orders);
-
       resolve(orders);
     });
   },
@@ -1331,8 +1225,6 @@ module.exports = {
         .collection(collection.ORDER_COLLECTION)
         .find({ _id: new ObjectId(userId) })
         .toArray();
-
-      console.log(orders);
 
       resolve(orders);
     });
@@ -1428,14 +1320,10 @@ module.exports = {
           .collection(collection.WISHLIST_COLLECTION)
           .findOne({ user: new ObjectId(userId) });
 
-        console.log("user wishlist ", userWishlist);
-
         if (userWishlist) {
           let proExist = userWishlist.products.findIndex(
             (product) => product.item.toString() === proId
           );
-
-          console.log(proExist);
 
           if (proExist !== -1) {
             await db
@@ -1544,8 +1432,6 @@ module.exports = {
         ])
         .toArray();
 
-      console.log("wish list items are ", WishlistItems);
-
       resolve(WishlistItems);
     });
   },
@@ -1568,8 +1454,6 @@ module.exports = {
         hour12: true,
       });
 
-      console.log("data in server", orderId, userId);
-
       db.get()
         .collection(collection.ORDER_COLLECTION)
         .updateOne(
@@ -1580,8 +1464,6 @@ module.exports = {
           }
         )
         .then(async (response) => {
-          console.log("order in server ", response);
-
           if (response) {
             let orderTrack = await db
               .get()
@@ -1598,8 +1480,6 @@ module.exports = {
   },
 
   returnProduct: (proId, orderId, check, reason, message) => {
-    console.log(check);
-
     return new Promise(async (resolve, reject) => {
       const currentDate = new Date();
 
@@ -1620,10 +1500,6 @@ module.exports = {
       });
 
       try {
-        console.log("Product ID:", proId);
-
-        console.log("Order ID:", orderId);
-
         const order = await db
           .get()
           .collection(collection.ORDER_COLLECTION)
@@ -1632,8 +1508,6 @@ module.exports = {
         if (!order) {
           return resolve({ status: false, message: "Order not found" });
         }
-
-        console.log("Order Data:", order);
 
         const orderProducts = order.products;
 
@@ -1649,8 +1523,6 @@ module.exports = {
             message: `Product with ID ${proId} not found in the order.`,
           });
         }
-
-        console.log("Matching Product:", matchingProduct);
 
         if (matchingProduct.return && matchingProduct.return.status === true) {
           return resolve({
@@ -1671,13 +1543,9 @@ module.exports = {
 
         const orderDateString = order.date;
 
-        console.log("Order Date String:", orderDateString);
-
         const orderDate = parseOrderDate(orderDateString);
 
         if (isNaN(orderDate.getTime())) {
-          console.error("Invalid order date format:", orderDateString);
-
           return resolve({ status: false, message: "Invalid order date" });
         }
 
@@ -1687,17 +1555,11 @@ module.exports = {
           differenceInMs / (1000 * 60 * 60 * 24)
         );
 
-        console.log("Difference in Days:", differenceInDays);
-
         if (
           (returnPolicy === "3 Days" && differenceInDays <= 3) ||
           (returnPolicy === "5 Days" && differenceInDays <= 5) ||
           (returnPolicy === "7 Days" && differenceInDays <= 7)
         ) {
-          console.log(
-            `Product is eligible for return under the ${returnPolicy} policy.`
-          );
-
           if (check) {
             resolve({ status: true });
           } else {
@@ -1730,8 +1592,6 @@ module.exports = {
             });
           }
         } else {
-          console.log("Product is not eligible for return.");
-
           resolve({
             status: false,
             message: `Product return time is over (${returnPolicy})`,
@@ -1757,8 +1617,6 @@ module.exports = {
         if (slides.length > 0) {
           const sliderArray = slides[0].slider;
 
-          console.log("slider array", sliderArray);
-
           resolve(sliderArray);
         } else {
           resolve([]);
@@ -1770,8 +1628,6 @@ module.exports = {
   },
 
   addContact: (data) => {
-    console.log("adta ", data);
-
     return new Promise((resolve, reject) => {
       db.get()
         .collection(collection.CONTACT_COLLECTION)
