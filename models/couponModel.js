@@ -9,7 +9,7 @@ module.exports = {
         .get()
         .collection(collection.COUPONS_COLLECTION)
         .findOne({ userId: new ObjectId(userId) });
-      console.log("coppons", response);
+     
 
       return response.coupons;
     } catch (error) {
@@ -62,7 +62,7 @@ module.exports = {
               },
             }
           );
-        console.log(response);
+       
       }
 
       return {
@@ -72,7 +72,7 @@ module.exports = {
         coupon,
       };
     } catch (error) {
-      console.error("Error applying coupon:", error);
+     
       return {
         status: false,
         message: "Something went wrong while applying coupon.",
