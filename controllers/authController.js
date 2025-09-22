@@ -1,5 +1,4 @@
-
-const userModel = require('../models/userModel');
+const userModel = require("../models/userModel");
 
 exports.getLoginStatus = (req, res) => {
   if (req.session.user?.loggedIn) {
@@ -13,17 +12,57 @@ exports.getLoginStatus = (req, res) => {
 
 exports.login = async (req, res, next) => {
   try {
-   
-    const response = await userModel.doLogin(req.body);
+    const { username, password } = req.body;
+
+    if (
+      req.session.lockedOutUntil &&
+      req.session.lockedOutUntil <= Date.now()
+    ) {
+      req.session.failedAttempts = 0;
+      req.session.lockedOutUntil = null;
+    }
+
+    if (req.session.lockedOutUntil && req.session.lockedOutUntil > Date.now()) {
+      const timeLeft = Math.ceil(
+        (req.session.lockedOutUntil - Date.now()) / 1000
+      );
+      return res.json({
+        loggedIn: false,
+        timeLeft,
+        message: `Too many failed attempts. Try again in ${timeLeft} seconds.`,
+      });
+    }
+
+    if (!req.session.failedAttempts) {
+      req.session.failedAttempts = 0;
+    }
+
+    let response = await userModel.doLogin(req.body);
     if (response.status) {
       req.session.user = { loggedIn: true, ...response.user };
-      await userModel.updateLastActive(response.user._id);
+      req.session.failedAttempts = 0;
+
       res.json({ loggedIn: true, user: req.session.user });
+
+      userModel.updateLastActive(req.session.user._id);
+      console.log("updated last in router");
     } else {
-      res.json({ loggedIn: false, message: response.message });
+      req.session.failedAttempts += 1;
+
+      if (req.session.failedAttempts >= 10) {
+        req.session.lockedOutUntil = Date.now() + 2 * 60 * 1000;
+        res.json({
+          loggedIn: false,
+          timeLeft: 120,
+          message: "Too many failed attempts. Please try again in 2 minutes.",
+        });
+      } else {
+        req.session.loginErr = "Invalid username or password";
+        res.json({ loggedIn: false, message: req.session.loginErr });
+      }
     }
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 };
 
