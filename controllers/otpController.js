@@ -1,18 +1,23 @@
+const userModel = require("../models/userModel");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+require("dotenv").config();
 
-const userModel = require('../models/userModel');
-const sgMail    = require('@sendgrid/mail');
-const crypto    = require('crypto');
-
-sgMail.setApiKey(process.env.SENDERGRID_API);
-
-const otpStore        = {};
-const requestCount    = {};
-const requestTime     = {};
-const failedAttempts  = {};
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+const otpStore = {};
+const requestCount = {};
+const requestTime = {};
+const failedAttempts = {};
 
 function rateLimit(email, limit, windowMs) {
   const count = requestCount[email] || 0;
-  const last  = requestTime[email] || 0;
+  const last = requestTime[email] || 0;
   if (count >= limit && Date.now() - last < windowMs) {
     return false;
   }
@@ -23,32 +28,57 @@ function rateLimit(email, limit, windowMs) {
 }
 
 async function sendOtpEmail(to, name, otp) {
-  const msg = {
+  const mailOptions = {
+    from: `"KingCart" <${process.env.EMAIL_USER}>`,
     to,
-    from: 'kingcart.ecom@gmail.com',
-    subject: 'Your OTP Code',
-    text: `Hello ${name}, your OTP is ${otp}.`,
+    subject: "Your One-Time Password (OTP) for KingCart",
+    text: `Hello ${name},
+
+Your OTP for KingCart is: ${otp}
+
+This OTP is valid for 5 minutes. Please do not share it with anyone.
+
+Thank you,
+The KingCart Team`,
+    html: `
+  <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+    <h2 style="color: #0D6EFD; text-align: center;">KingCart</h2>
+    <p>Hi <strong>${name}</strong>,</p>
+    <p>Your One-Time Password (OTP) is:</p>
+    <h1 style="text-align: center; color: #0D6EFD;">${otp}</h1>
+    <p style="color: #555;">This OTP is valid for <strong>5 minutes</strong>. Please do not share it with anyone.</p>
+    <p>Thank you,<br/><strong>KingCart Team</strong></p>
+    <hr style="border: none; border-top: 1px solid #eaeaea; margin: 20px 0;" />
+    <p style="font-size: 12px; color: #888; text-align: center;">
+      You received this email because you requested an OTP for KingCart.
+    </p>
+  </div>
+  `,
   };
-  await sgMail.send(msg);
+
+  await transporter.sendMail(mailOptions);
 }
 
 exports.sendForgotOtp = async (req, res, next) => {
   try {
     const { Email, Name, Mobile } = req.body;
     if (!Email || !Name || !Mobile)
-      return res.json({ status: false, message: 'All fields required' });
+      return res.json({ status: false, message: "All fields required" });
 
     if (!rateLimit(Email, 12, 2 * 60 * 60 * 1000))
-      return res.json({ status: false, message: 'Too many requests, try later.' });
+      return res.json({
+        status: false,
+        message: "Too many requests, try later.",
+      });
 
     requestCount[Email] = (requestCount[Email] || 0) + 1;
-    requestTime[Email]  = Date.now();
+    requestTime[Email] = Date.now();
 
     const otp = crypto.randomInt(100000, 999999).toString();
     otpStore[Email] = { otp, expiresAt: Date.now() + 10 * 60 * 1000 };
     await sendOtpEmail(Email, Name, otp);
 
-    res.json({ status: true, message: 'OTP sent successfully.' });
+    res.json({ status: true, message: "OTP sent successfully." });
   } catch (err) {
     next(err);
   }
@@ -56,22 +86,27 @@ exports.sendForgotOtp = async (req, res, next) => {
 
 exports.sendSignupOtp = async (req, res, next) => {
   try {
-    const { Email, Name, Mobile } = req.body;
+    const { Email, Name } = req.body;
     const signupRes = await userModel.doSignup(req.body, true);
     if (!signupRes.status) return res.json(signupRes);
 
     if (!rateLimit(Email, 2, 2 * 60 * 60 * 1000))
-      return res.json({ status: false, message: 'Too many requests, try later.' });
+      return res.json({
+        status: false,
+        message: "Too many requests, try later.",
+      });
 
     requestCount[Email] = (requestCount[Email] || 0) + 1;
-    requestTime[Email]  = Date.now();
+    requestTime[Email] = Date.now();
 
     const otp = crypto.randomInt(100000, 999999).toString();
     otpStore[Email] = { otp, expiresAt: Date.now() + 10 * 60 * 1000 };
     await sendOtpEmail(Email, Name, otp);
 
-    res.json({ status: true, message: 'OTP sent successfully.' });
+    res.json({ status: true, message: "OTP sent successfully." });
   } catch (err) {
+    console.log(err);
+
     next(err);
   }
 };
@@ -80,25 +115,23 @@ exports.verify = async (req, res, next) => {
   try {
     const { Email, otp, forgot = false } = req.body;
     if (!Email || !otp)
-      return res.json({ status: false, message: 'Email and OTP required' });
+      return res.json({ status: false, message: "Email and OTP required" });
 
-   
     const record = otpStore[Email];
     if (!record || record.expiresAt < Date.now())
-      return res.json({ status: false, message: 'OTP expired' });
+      return res.json({ status: false, message: "OTP expired" });
 
     if (record.otp !== otp) {
       failedAttempts[Email] = (failedAttempts[Email] || 0) + 1;
-      return res.json({ status: false, message: 'Invalid OTP' });
+      return res.json({ status: false, message: "Invalid OTP" });
     }
 
     delete otpStore[Email];
 
     if (forgot) {
-      return res.json({ status: true, message: 'Proceed with reset' });
+      return res.json({ status: true, message: "Proceed with reset" });
     }
 
-   
     const userData = {
       Name: req.body.Name,
       LastName: req.body.LastName,
