@@ -90,7 +90,18 @@ db.connect((err) => {
     console.log("Database Connected ");
   }
 });
+
 // Route handling
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date(),
+    message: "Server running smoothly",
+  });
+});
+
 app.use("/", userRouter);
 // Static public directory
 app.use("/public", express.static(path.join(__dirname, "public")));
